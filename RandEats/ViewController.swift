@@ -9,6 +9,15 @@
 import UIKit
 
 class ViewController: UIViewController {
+	struct Gesture {
+		var tap = "Tap"
+		var left = "Left"
+		var right = "Right"
+		var none = "None"
+	}
+	
+	let gesture = Gesture()
+	lazy var userGesture = gesture.none	// no gesture by default
 	
 	let location = Location()
 	
@@ -39,28 +48,27 @@ class ViewController: UIViewController {
 	fileprivate func setupLabels() {
 		// location label
 		locationLabel.numberOfLines = 0
-		locationLabel.textAlignment = .left
+		locationLabel.textAlignment = .center
 		locationLabel.text = "Location"
 		locationLabel.textColor = UIColor.white
 		locationLabel.font = UIFont.systemFont(ofSize: 35, weight: UIFont.Weight.bold)
 		
 		// review label
 		reviewLabel.numberOfLines = 0
-		reviewLabel.textAlignment = .left
+		reviewLabel.textAlignment = .center
 		reviewLabel.text = "\(location.review) / 5.0"
 		reviewLabel.textColor = UIColor.white
 		reviewLabel.font = UIFont.systemFont(ofSize: 18, weight: UIFont.Weight.bold)
 		
 		// body label
 		bodyLabel.numberOfLines = 0
-		bodyLabel.textAlignment = .left
+		bodyLabel.textAlignment = .center
 		bodyLabel.text = "This is about the location. It has some quick bites or good drinks, but not both; it's either one or the other!"
 		bodyLabel.textColor = UIColor.white
 		bodyLabel.font = UIFont.systemFont(ofSize: 18, weight: UIFont.Weight.bold)
 	}
 	
 	fileprivate func setupStackView() {
-		//let stackView = UIStackView(arrangedSubviews: [locationLabel, reviewLabel, bodyLabel])
 		stackView.insertArrangedSubview(locationLabel, at: 0)
 		stackView.insertArrangedSubview(reviewLabel, at: 1)
 		stackView.insertArrangedSubview(bodyLabel, at: 2)
@@ -75,12 +83,10 @@ class ViewController: UIViewController {
 
 		// animating stackview label
 		UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-				//stackView.transform = CGAffineTransform(translationX: -20, y: 0)
 				self.stackView.transform = CGAffineTransform(translationX: -20, y: 0)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 
-				//stackView.transform = self.locationLabel.transform.translatedBy(x: -385, y: 0)
 				self.stackView.transform = self.locationLabel.transform.translatedBy(x: -385, y: 0)
 			})
 		}
@@ -95,23 +101,40 @@ class ViewController: UIViewController {
 		setupLabels()
 		setupStackView()
 		
-		// setting up animations
+		// setting up tap and swipe animations
 		let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapAnimation))
+		userGesture = gesture.tap
 		self.stackView.addGestureRecognizer(tap)
 		
 		let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft))
+		userGesture = gesture.left
 		swipeLeft.direction = .left
 		self.stackView.addGestureRecognizer(swipeLeft)
 		
 		let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeRight))
+		userGesture = gesture.right
 		swipeRight.direction = .right
 		self.stackView.addGestureRecognizer(swipeRight)
 	}
-	
+
 	@objc func handleTapAnimation() {
+		if (userGesture == gesture.tap) {
+			setTranslationX = 0
+			setY = 20
+			translateByY = 150
+		} else if (userGesture == gesture.left) {
+			setTranslationX = -20
+			setY = 0
+			translateByY = 0
+		} else if (userGesture == gesture.right) {
+			setTranslationX = 20
+			setY = 0
+			translateByY = 0
+		}
+	
 		// animating location label
 		UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.locationLabel.transform = CGAffineTransform(translationX: -20, y: 0)
+			self.locationLabel.transform = CGAffineTransform(translationX: self.setTranslationX, y: 0)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
@@ -122,7 +145,7 @@ class ViewController: UIViewController {
 		
 		// animating reviews
 		UIView.animate(withDuration: 0.5, delay: 0.5, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.reviewLabel.transform = CGAffineTransform(translationX: -20, y: 0)
+			self.reviewLabel.transform = CGAffineTransform(translationX: 20, y: 0)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0.25, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
@@ -133,7 +156,7 @@ class ViewController: UIViewController {
 		
 		// animating body label
 		UIView.animate(withDuration: 0.5, delay: 1, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.bodyLabel.transform = CGAffineTransform(translationX: -20, y: 0)
+			self.bodyLabel.transform = CGAffineTransform(translationX: 20, y: 0)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
