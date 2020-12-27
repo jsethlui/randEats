@@ -9,17 +9,8 @@
 import UIKit
 
 class ViewController: UIViewController {
-	struct Gesture {
-		var tap = "Tap"
-		var left = "Left"
-		var right = "Right"
-		var none = "None"
-	}
 	
-	let gesture = Gesture()
-	lazy var userGesture = gesture.none	// no gesture by default
-	
-	let location = Location()
+	var locations: [Location] = []
 	
 	let locationLabel = UILabel()
 	let reviewLabel = UILabel()
@@ -29,20 +20,21 @@ class ViewController: UIViewController {
 	let findFoodButton = UIButton()
 	let findDrinkButton = UIButton()
 	
+	// buttons currently disabled
 	fileprivate func setupButtons() {
 		// green food button
 		findFoodButton.frame = CGRect(x: view.frame.minX + 5, y: view.frame.midY - 50, width: 5, height: 100)
 		findFoodButton.layer.cornerRadius = 2.5
 		findFoodButton.clipsToBounds = true
 		findFoodButton.backgroundColor = UIColor(red: 130.0 / 255.0, green: 182.0 / 255.0, blue: 172.0 / 255.0, alpha: 1.0)
-		view.addSubview(findFoodButton)
+		//view.addSubview(findFoodButton)
 		
 		// pink drink button
 		findDrinkButton.frame = CGRect(x: view.frame.maxX - 10, y: view.frame.midY - 50, width: 5, height: 100)
 		findDrinkButton.layer.cornerRadius = 2.5
 		findDrinkButton.clipsToBounds = true
 		findDrinkButton.backgroundColor = UIColor(red: 232.0 / 255.0, green: 127.0 / 255.0, blue: 177.0 / 255.0, alpha: 1.0)
-		view.addSubview(findDrinkButton)
+		//view.addSubview(findDrinkButton)
 	}
 	
 	fileprivate func setupLabels() {
@@ -56,7 +48,8 @@ class ViewController: UIViewController {
 		// review label
 		reviewLabel.numberOfLines = 0
 		reviewLabel.textAlignment = .center
-		reviewLabel.text = "\(location.review) / 5.0"
+//		reviewLabel.text = "\(location.review) / 5.0"
+		reviewLabel.text = "6 / 5"
 		reviewLabel.textColor = UIColor.white
 		reviewLabel.font = UIFont.systemFont(ofSize: 18, weight: UIFont.Weight.bold)
 		
@@ -101,40 +94,54 @@ class ViewController: UIViewController {
 		setupLabels()
 		setupStackView()
 		
+		// getting all locations
+		let sfLatitude = 37.7749
+		let sfLongitude = 122.4194
+		retrieveAllLocations(latitude: sfLatitude, longitude: sfLongitude, category: "food", limit: 20, sortBy: "distance", locale: "en_US") { (response, error) in
+			if let response = response {
+				self.locations = response
+			}
+		}
+
+
 		// setting up tap and swipe animations
-		let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapAnimation))
-		userGesture = gesture.tap
+		let tap = UITapGestureRecognizer(target: self, action: #selector(handleAnimation))
 		self.stackView.addGestureRecognizer(tap)
 		
-		let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft))
-		userGesture = gesture.left
+		let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleAnimation))
 		swipeLeft.direction = .left
 		self.stackView.addGestureRecognizer(swipeLeft)
 		
-		let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeRight))
-		userGesture = gesture.right
+		let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleAnimation))
 		swipeRight.direction = .right
 		self.stackView.addGestureRecognizer(swipeRight)
 	}
 
-	@objc func handleTapAnimation() {
-		if (userGesture == gesture.tap) {
-			setTranslationX = 0
-			setY = 20
-			translateByY = 150
-		} else if (userGesture == gesture.left) {
-			setTranslationX = -20
-			setY = 0
-			translateByY = 0
-		} else if (userGesture == gesture.right) {
-			setTranslationX = 20
-			setY = 0
-			translateByY = 0
+	@objc func handleAnimation(gesture: UIGestureRecognizer) {
+		var setTranslationX: CGFloat = 0
+		var setY: CGFloat = 0
+	
+		if let swipeGesture = gesture as? UISwipeGestureRecognizer {
+			switch swipeGesture.direction {
+				case .right:
+					print("right")
+					setTranslationX = 20
+					setY = 0
+				case .left:
+					print("left")
+					setTranslationX = -20
+					setY = 0
+				default:
+					setTranslationX = 0
+					setY = 20
+					print("tap")
+			}
 		}
+
 	
 		// animating location label
 		UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.locationLabel.transform = CGAffineTransform(translationX: self.setTranslationX, y: 0)
+			self.locationLabel.transform = CGAffineTransform(translationX: setTranslationX, y: setY)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
@@ -145,7 +152,7 @@ class ViewController: UIViewController {
 		
 		// animating reviews
 		UIView.animate(withDuration: 0.5, delay: 0.5, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.reviewLabel.transform = CGAffineTransform(translationX: 20, y: 0)
+			self.reviewLabel.transform = CGAffineTransform(translationX: setTranslationX, y: setY)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0.25, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
@@ -156,7 +163,7 @@ class ViewController: UIViewController {
 		
 		// animating body label
 		UIView.animate(withDuration: 0.5, delay: 1, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-			self.bodyLabel.transform = CGAffineTransform(translationX: 20, y: 0)
+			self.bodyLabel.transform = CGAffineTransform(translationX: setTranslationX, y: setY)
 		}) { (_) in
 			UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations:  {
 				
@@ -165,13 +172,55 @@ class ViewController: UIViewController {
 			})
 		}
 	}
-	
-	@objc func handleSwipeLeft() {
-		print("swipe left")
-	}
-	
-	@objc func handleSwipeRight() {
-		print("swipe right")
+}
+
+extension ViewController {
+	func retrieveAllLocations(latitude: Double,
+							  longitude: Double,
+							  category: String,
+							  limit: Int,
+							  sortBy: String,
+							  locale: String,
+							  completionHandler: @escaping([Location]?, Error?) -> Void) {
+		let apiKey = "VV6lqYVeipQ-1KBYzs280Rc7j3CzB1QCn_d-hArzhLoMgaIEagm1XxKsFscP_IqMvrSdYRI0al1MPZYvmO0NhCYKVuQ46mmuZ3PpCS4SNW0K0f4LDBoSZtabE0a_X3Yx"
+		let baseURL = "https://api.yelp.com/v3/businesses/search?latitude=\(latitude)&longitude=\(longitude)&categories=\(category)&limit=\(limit)&sort_by=\(sortBy)&locale=\(locale)"
+		let url = URL(string: baseURL)
+		
+		// creating request
+		var request = URLRequest(url: url!)
+		request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+		request.httpMethod = "GET"
+		
+		URLSession.shared.dataTask(with: request) { (data, response, error) in
+			if let error = error {
+				completionHandler(nil, error)
+			}
+			do {
+				// reading data as JSON
+				let json = try JSONSerialization.jsonObject(with: data!, options: [])
+				
+				// main dictionary
+				guard let resp = json as? NSDictionary else { return }
+				
+				// businesses
+				guard let businesses = resp.value(forKey: "businesses") as? [NSDictionary] else { return }
+				
+				var locationList: [Location] = []
+//				print(businesses)
+				
+				for business in businesses {
+					var location = Location()
+					location.name = business.value(forKey: "name") as! String
+					location.review = business.value(forKey: "rating") as! Float
+					location.isClosed = business.value(forKey: "is_closed") as! Bool
+					locationList.append(location)
+				}
+				completionHandler(locationList, nil)
+			} catch {
+				print("Caught error")
+				completionHandler(nil, error)
+			}
+			}.resume()
 	}
 }
 
