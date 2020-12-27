@@ -11,24 +11,22 @@
 
 import Foundation
 
-struct Type {
-	var restaurant = "Restaurant"
-	var drinks = "Drinks"
-	var none = "None"
-}
-
 class Location {
-	let locationType = Type()
-	
+
 	var name: String
 	var review: Float
-	var type: String
 	var isClosed: Bool
 	
 	init() {
 		self.name = "N/A"
 		self.review = -1
-		self.type = locationType.none
 		isClosed = true
+	}
+	
+	func printNeatly() {
+		var str = "Name: \(name)"
+		str += "\nReview: \(review) / 5"
+		str += "\nisClosed: \(isClosed)"
+		print("\(str)\n")
 	}
 }

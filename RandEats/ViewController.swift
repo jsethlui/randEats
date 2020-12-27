@@ -41,7 +41,7 @@ class ViewController: UIViewController {
 		// location label
 		locationLabel.numberOfLines = 0
 		locationLabel.textAlignment = .center
-		locationLabel.text = "Location"
+//		locationLabel.text = "Location"
 		locationLabel.textColor = UIColor.white
 		locationLabel.font = UIFont.systemFont(ofSize: 35, weight: UIFont.Weight.bold)
 		
@@ -85,24 +85,31 @@ class ViewController: UIViewController {
 		}
 	}
 	
+	fileprivate func generateAndSetLocations() {
+		// location currently set for New York
+		let CPLatitude = 40.782483
+		let CPLongitude = -73.963540
+		retrieveAllLocations(latitude: CPLatitude, longitude: CPLongitude, category: "food", limit: 20, sortBy: "distance", locale: "en_US") { (response, error) in
+			if let response = response {
+				self.locations = response	// location array generated here
+				
+				DispatchQueue.main.async {
+					self.locationLabel.text = self.locations[0].name
+					self.reviewLabel.text = "\(self.locations[0].review) / 5"
+				}
+			}
+		}
+	}
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
 		self.view.backgroundColor = UIColor(red: 28.0 / 255.0, green: 29.0 / 255.0, blue: 31.0 / 255.0, alpha: 1.0)
 		
+		generateAndSetLocations()
 		setupButtons()
 		setupLabels()
 		setupStackView()
-		
-		// getting all locations
-		let sfLatitude = 37.7749
-		let sfLongitude = 122.4194
-		retrieveAllLocations(latitude: sfLatitude, longitude: sfLongitude, category: "food", limit: 20, sortBy: "distance", locale: "en_US") { (response, error) in
-			if let response = response {
-				self.locations = response
-			}
-		}
-
 
 		// setting up tap and swipe animations
 		let tap = UITapGestureRecognizer(target: self, action: #selector(handleAnimation))
@@ -205,11 +212,10 @@ extension ViewController {
 				// businesses
 				guard let businesses = resp.value(forKey: "businesses") as? [NSDictionary] else { return }
 				
-				var locationList: [Location] = []
-//				print(businesses)
+				var locationList = [Location]()
 				
 				for business in businesses {
-					var location = Location()
+					let location = Location()
 					location.name = business.value(forKey: "name") as! String
 					location.review = business.value(forKey: "rating") as! Float
 					location.isClosed = business.value(forKey: "is_closed") as! Bool
