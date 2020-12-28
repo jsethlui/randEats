@@ -41,15 +41,12 @@ class ViewController: UIViewController {
 		// location label
 		locationLabel.numberOfLines = 0
 		locationLabel.textAlignment = .center
-//		locationLabel.text = "Location"
 		locationLabel.textColor = UIColor.white
 		locationLabel.font = UIFont.systemFont(ofSize: 35, weight: UIFont.Weight.bold)
 		
 		// review label
 		reviewLabel.numberOfLines = 0
 		reviewLabel.textAlignment = .center
-//		reviewLabel.text = "\(location.review) / 5.0"
-		reviewLabel.text = "6 / 5"
 		reviewLabel.textColor = UIColor.white
 		reviewLabel.font = UIFont.systemFont(ofSize: 18, weight: UIFont.Weight.bold)
 		
@@ -94,8 +91,9 @@ class ViewController: UIViewController {
 				self.locations = response	// location array generated here
 				
 				DispatchQueue.main.async {
-					self.locationLabel.text = self.locations[0].name
-					self.reviewLabel.text = "\(self.locations[0].review) / 5"
+					let randomIndex = Int.random(in: 0..<self.locations.count)
+					self.locationLabel.text = self.locations[randomIndex].name
+					self.reviewLabel.text = "\(self.locations[randomIndex].review) / 5.0"
 				}
 			}
 		}
@@ -106,10 +104,10 @@ class ViewController: UIViewController {
 		
 		self.view.backgroundColor = UIColor(red: 28.0 / 255.0, green: 29.0 / 255.0, blue: 31.0 / 255.0, alpha: 1.0)
 		
-		generateAndSetLocations()
 		setupButtons()
 		setupLabels()
 		setupStackView()
+		generateAndSetLocations()
 
 		// setting up tap and swipe animations
 		let tap = UITapGestureRecognizer(target: self, action: #selector(handleAnimation))
@@ -131,17 +129,17 @@ class ViewController: UIViewController {
 		if let swipeGesture = gesture as? UISwipeGestureRecognizer {
 			switch swipeGesture.direction {
 				case .right:
-					print("right")
+//					print("right")
 					setTranslationX = 20
 					setY = 0
 				case .left:
-					print("left")
+//					print("left")
 					setTranslationX = -20
 					setY = 0
 				default:
 					setTranslationX = 0
 					setY = 20
-					print("tap")
+//					print("tap")
 			}
 		}
 
